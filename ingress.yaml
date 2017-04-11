@@ -2,10 +2,10 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: {{ template "fullname" . }}
+  name: {{ .Release.Name | quote }}
   labels:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
-    app: {{ template "fullname" . }}
+    app: {{ .Release.Name | quote }}
   annotations:
   {{- range $key, $value := .Values.ingress.annotations }}
     {{ $key }}: {{ $value | quote }}
@@ -16,7 +16,7 @@ spec:
     {{- range .Values.ingress.hosts }}
     - {{ . }}
     {{- end }}
-    secretName: {{ .Values.ingress.tlsSecretName }}
+    secretName: {{ .Values.ingress.tlsSecretName | quote }}
   rules:
   {{- range .Values.ingress.hosts }}
   - host: {{ . }}
@@ -24,6 +24,6 @@ spec:
       paths:
       - path: /*
         backend:
-          serviceName: {{ template "fullname" $globalContext }}
+          serviceName: {{ $globalContext.Release.Name | quote }}
           servicePort: {{ $globalContext.Values.service.externalPort }}
   {{- end}}
