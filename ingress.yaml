@@ -1,0 +1,29 @@
+{{- $globalContext := . -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    app: {{ template "fullname" . }}
+  annotations:
+  {{- range $key, $value := .Values.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}
+spec:
+  tls: 
+  - hosts:
+    {{- range .Values.ingress.hosts }}
+    - {{ . }}
+    {{- end }}
+    secretName: {{ .Values.ingress.tlsSecretName }}
+  rules:
+  {{- range .Values.ingress.hosts }}
+  - host: {{ . }}
+    http:
+      paths:
+      - path: /*
+        backend:
+          serviceName: {{ template "fullname" $globalContext }}
+          servicePort: {{ $globalContext.Values.service.externalPort }}
+  {{- end}}
