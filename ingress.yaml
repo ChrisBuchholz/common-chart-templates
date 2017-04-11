@@ -7,16 +7,18 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
     app: {{ .Release.Name | quote }}
   annotations:
-  {{- range $key, $value := .Values.ingress.annotations }}
-    {{ $key }}: {{ $value | quote }}
+  {{- if .Values.ingress.tls }}
+    kubernetes.io/tls-acme: "true"
   {{- end }}
 spec:
+  {{- if .Values.ingress.tls }}
   tls: 
   - hosts:
     {{- range .Values.ingress.hosts }}
     - {{ . }}
     {{- end }}
-    secretName: {{ .Values.ingress.tlsSecretName | quote }}
+    secretName: "{{ .Release.Name }}-tls"
+  {{- end }}
   rules:
   {{- range .Values.ingress.hosts }}
   - host: {{ . }}

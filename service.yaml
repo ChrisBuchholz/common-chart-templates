@@ -6,7 +6,9 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
     app: {{ .Release.Name | quote }}
 spec:
+  {{- if .Values.service.type }}
   type: {{ .Values.service.type | quote }}
+  {{- end }}
   ports:
   - name: {{ .Values.service.name | quote }}
     port: {{ .Values.service.externalPort }}
