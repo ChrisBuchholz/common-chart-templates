@@ -7,8 +7,16 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
     app: {{ .Release.Name | quote }}
   annotations:
+  {{- if .Values.ingress.class }}
+    kubernetes.io/ingress.class: {{ .Values.ingress.class | quote }}
+  {{- end }}
   {{- if .Values.ingress.tls }}
     kubernetes.io/tls-acme: "true"
+  {{- end }}
+  {{- if .Values.ingress.basicAuth }}
+    ingress.kubernetes.io/auth-type: basic
+    ingress.kubernetes.io/auth-secret: {{ .Values.ingress.basicAuth.secret | quote }}
+    ingress.kubernetes.io/auth-realm: "Authentication Required"
   {{- end }}
 spec:
   {{- if .Values.ingress.tls }}
@@ -17,14 +25,22 @@ spec:
     {{- range .Values.ingress.hosts }}
     - {{ . }}
     {{- end }}
+    {{- if .Values.ingress.tlsSecretName }}
+    secretName: {{ .Values.ingress.tlsSecretName | quote }}
+    {{- else }}
     secretName: "{{ .Release.Name }}-tls"
+    {{- end }}
   {{- end }}
   rules:
   {{- range .Values.ingress.hosts }}
   - host: {{ . }}
     http:
       paths:
-      - path: /*
+      {{- if $globalContext.Values.ingress.path }}
+      - path: /{{ $globalContext.Values.ingress.path }}
+      {{- else }}
+      - path:
+      {{- end }}
         backend:
           serviceName: {{ $globalContext.Release.Name | quote }}
           servicePort: {{ $globalContext.Values.service.externalPort }}
